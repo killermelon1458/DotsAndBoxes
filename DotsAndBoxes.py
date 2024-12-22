@@ -46,7 +46,15 @@ def main():
     top = (height - (numSquares*spacing))//2
     halfSpace = round(spacing/2)
     clock = pygame.time.Clock()
+    click = (None,None)
     draw = True
+    LoDots = [[None for _ in range(numSquares + 1)] for _ in range(numSquares + 1)]
+    LoDia = [[]]*((numSquares*2)+1)
+    for row in range(numSquares + 1):
+        for col in range(numSquares + 1):
+            x = left + col * spacing
+            y = top  + row * spacing
+            LoDots[row][col] = (x, y)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -62,10 +70,11 @@ def main():
                     x = left 
                     y = top
                     for col in range(numSquares+1):
-                        midX = (x + left + col * spacing)/2
-                        midY = (y +top + row * spacing)/2
+                        midX = x +spacing/2
+                        midY = y +spacing/2
                         x = left + col * spacing
                         y = top + row * spacing
+
 
                         pygame.draw.circle(win, 'black', (x,y), int(.2*spacing), 0)
 

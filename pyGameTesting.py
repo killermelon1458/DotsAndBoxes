@@ -22,7 +22,7 @@ class Rectangle:
         return (self.x <= px <= self.x + self.width) and (self.y <= py <= self.y + self.height)     
 width =1280
 height = 720
-numSquares =5
+numSquares =10
 pygame.init()
 win = pygame.display.set_mode((width,height))
 clock = pygame.time.Clock()
@@ -43,7 +43,7 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             click = event.pos
         elif event.type == pygame.MOUSEBUTTONUP:
-            click = (None,None)
+            click = (0,0)
     
     win.fill('grey')
 
