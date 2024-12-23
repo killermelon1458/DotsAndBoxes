@@ -8,6 +8,7 @@ class diamond:
         self.center = ((p3[0] + p1[0]) / 2, (p4[1] + p2[1]) / 2)
         self.orientation = orientation
         self.points =[p1,p2,p3,p4]
+        self.length = ((abs(self.p1[0] - self.p3[0])) + (abs(self.p2[1] - self.p4[1]))) / 2
 
     @classmethod
     def init(cls, p_1, p_2):
@@ -92,6 +93,15 @@ class diamond:
         
     def gerCenter(self):
         return self.center
+    
+    def setOrientation(self,orientation):
+        if orientation != 'level' or orientation != 'plumb':
+            raise ValueError("orientation must be level or plumb")
+        self.orientation = orientation
+
+    def getOrientation(self):
+        #if self.orientation != None:
+            return self.orientation
 
 def test():
     # Example usage
@@ -102,3 +112,8 @@ def test():
     print(box.p1, box.p2, box.p3, box.p4, box.orientation)
 
 #test()
+
+test = diamond.init_center((10,10),5)
+test2 = diamond.init(test.p1,test.p3)
+test3 = diamond.init_point((10,10),5,'up',)
+
