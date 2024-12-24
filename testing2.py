@@ -69,3 +69,13 @@ for row in range(numRows):
 
 for i in range(LoDots):
     for j in range(LoDots[i]):
+         
+LoPlumbSticks = []
+
+for i in range(len(LoPlumbSticks)):
+                    for j in range(len(LoPlumbSticks[i])):
+                        if LoPlumbSticks[i][j].isin(click):
+                            LoPlumbSticks[i][j].setColor('green')
+                            LoPlumbSticks[i][j].setExists(True)
+                        if LoPlumbSticks[i][j].doesExist():
+                            LoPlumbSticks[i][j].draw(win)

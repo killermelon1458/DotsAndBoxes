@@ -95,10 +95,10 @@ class diamond:
         return self.center
     
     def setOrientation(self,orientation):
-        if orientation != 'level' or orientation != 'plumb':
+        if orientation == 'level' or orientation == 'plumb':
+            self.orientation = orientation
+        else:
             raise ValueError("orientation must be level or plumb")
-        self.orientation = orientation
-
     def getOrientation(self):
         #if self.orientation != None:
             return self.orientation
