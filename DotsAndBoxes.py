@@ -171,8 +171,11 @@ def cliclStick(LoSticks,click,color):
     for i in range(len(LoSticks)):
         for j in range(len(LoSticks[i])):
             if LoSticks[i][j].isin(click):
+                temp =LoSticks[i][j].doesExist()
                 LoSticks[i][j].setColor(color)
                 LoSticks[i][j].setExists(True)
+                return  not temp
+                
 
 def drawSticks(LoSticks,win):
     for i in range(len(LoSticks)):
@@ -192,20 +195,31 @@ def checkBoxEnclosed(LoLevelSticks,LoPlumbSticks,LoSquares,turn):
                     LoSquares[row][col].setColor(turn)
 
 def drawSquares(LoSquares,win):
+    numOfBoxes =0
     for row in range(len(LoSquares)):
         for col in range(len(LoSquares[row])):
             if LoSquares[row][col].doesExist():
+                numOfBoxes += 1
                 LoSquares[row][col].draw(win)
+    return numOfBoxes
                 
-
+def turnSwitch(player):
+    """This function takse in a sting 'red or 'blue' and returns the opposite. If some other input it will return input"""
+    if player == "blue":
+        player = "red"
+    elif player == "red":
+        player = "green"
+    elif player == 'green':
+        player = "blue"
+    return player
 
 def main():
     
     width =1500
     height = 750
     
-    numCols = 75
-    numRows = 37
+    numCols = 9
+    numRows = 7
     spacing = calcSpacing(width,height,numCols,numRows)
     LoDots = makeDotPoints(width,height,numCols,numRows,spacing)
     [LoXMids,LoYMids,LoCenters] =calcPoints(LoDots,numCols,numRows)
@@ -218,7 +232,8 @@ def main():
     clock = pygame.time.Clock()
     click = (0,0)
     running = True
-    
+    turn = 'blue'
+    numOfBoxes = 0
     draw = True
     while running:
         for event in pygame.event.get():
@@ -245,16 +260,17 @@ def main():
                         LoSquares[i][j].draw(win)                
                 """
                 ranColor = randomRGB()
-                cliclStick(LoLevelSticks,click,ranColor)
-                cliclStick(LoPlumbSticks,click,ranColor)
-                checkBoxEnclosed(LoLevelSticks,LoPlumbSticks,LoSquares,ranColor)
-                drawSquares(LoSquares,win)
+                realClick = cliclStick(LoLevelSticks,click,turn)
+                realClick = realClick or cliclStick(LoPlumbSticks,click,turn)
+                checkBoxEnclosed(LoLevelSticks,LoPlumbSticks,LoSquares,turn)
+                tempNum =drawSquares(LoSquares,win)
                 
                 drawSticks(LoLevelSticks,win)
                 drawSticks(LoPlumbSticks,win)
                 drawDots(LoDots,win,spacing)
-                
-                        
+                if realClick and tempNum == numOfBoxes:
+                    turn = turnSwitch(turn)
+                numOfBoxes = tempNum        
             pygame.display.flip() 
             clock.tick(60)
 
