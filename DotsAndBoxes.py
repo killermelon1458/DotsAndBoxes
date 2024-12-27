@@ -3,6 +3,33 @@ from box import *
 from diamond import *
 import random
 
+class player:
+    def __init__(self,name,color):
+        self.name = name
+        self.color = color
+        self.score = 0
+    
+    def getColor(self):
+        return self.color
+    
+    def getName(self):
+        return self.color
+    
+    def getScore(self):
+        return self.score
+    
+    def setColor(self,color):
+        self.color = color
+    
+    def setName(self,name):
+        self.name = name
+
+    def setScore(self,score):
+        self.score = score
+
+    def addScore(self,score):
+        self.score += score
+
 class lineAndHitBox:
     def __init__(self, box,outline, diamond, orientation):
         self.line = box
@@ -208,32 +235,109 @@ def turnSwitch(player):
     if player == "blue":
         player = "red"
     elif player == "red":
-        player = "green"
-    elif player == 'green':
         player = "blue"
     return player
 
+def nextTurn(LoPlayers, Player):
+    for i in range(len(LoPlayers)):
+        if LoPlayers[i] == Player:
+            if i+1 not in range(len(LoPlayers)):
+                return LoPlayers[0]
+            else:
+                return LoPlayers [i+1]
+
+def getScores(LoSquares):
+    scoreDict = {}
+    for row in range(len(LoSquares)):
+        for col in range(len(LoSquares[row])):
+            if LoSquares[row][col].doesExist():
+                if LoSquares[row][col].getColor() in scoreDict:
+                    scoreDict[LoSquares[row][col].getColor()] += 1
+                else:
+                    scoreDict[LoSquares[row][col].getColor()] = 1
+    return scoreDict
+
+def winCheck(scoreDict, numRows, numCols):
+    if scoreDict == {}:
+        return None
+    numBoxes = numCols*numRows
+    numFilledBoxes = sum(scoreDict.values())
+    playerMostBoxes = max(scoreDict, key=scoreDict.get)  
+    if numFilledBoxes == numBoxes:
+        return playerMostBoxes
+    else: 
+        return None
+    
+def sortScores(scoreDict, numCols, numRows):
+    """
+    :param scoreDict: dict mapping a player (str or RGB tuple) -> int (number of boxes)
+    :param numCols:   total columns on the board
+    :param numRows:   total rows on the board
+    :return:          list of (player, score) tuples, sorted in descending order by score
+    """
+    # total_squares = numCols * numRows  # (Available if you need it.)
+    
+    # Convert dict.items() -> list of (player, score)
+    # Then sort by score descending
+    if scoreDict == {}:
+        return None, False
+    tie = False
+    sortedList = sorted(scoreDict.items(), key=lambda item: item[1], reverse=True)
+    if len(sortedList) > 1:
+        if sortedList[0][1] == sortedList[1][1]:
+            tie = True
+    
+    return sortedList,tie
+
+def createScoreBoard(sortedPlayer, LoDots, spacing, win, numCols, numRows):
+    if sortedPlayer is None:
+        return
+    
+    numBoxes = numCols * numRows
+    lPoint = LoDots[0][0][0]        # leftmost dot's x
+    rPoint = LoDots[0][-1][0]       # rightmost dot's x
+    length = rPoint - lPoint
+    scoreSpacing = length / numBoxes
+
+    LoScoreSquares = []
+    # Place each square horizontally, from left to right
+    for i in range(numBoxes):
+        # increment the x position by i * scoreSpacing
+        xPos = lPoint + (i * scoreSpacing) + scoreSpacing / 2
+        yPos = spacing  # or wherever you want them vertically
+        tempbox = box((xPos, yPos), scoreSpacing +2 , scoreSpacing +2)
+        LoScoreSquares.append(tempbox)
+
+    # Now color and draw the boxes by which player controls them
+    num = 0
+    for (playerColor, boxCount) in sortedPlayer:
+        for _ in range(boxCount):
+            # If num goes beyond the length of LoScoreSquares, you may need a check
+            LoScoreSquares[num].setColor(playerColor)
+            LoScoreSquares[num].draw(win)
+            num += 1
+
 def main():
     
-    width =1500
-    height = 750
+    width =1000
+    height = 500
     
-    numCols = 9
-    numRows = 7
+    numCols = 3
+    numRows = 2
     spacing = calcSpacing(width,height,numCols,numRows)
     LoDots = makeDotPoints(width,height,numCols,numRows,spacing)
     [LoXMids,LoYMids,LoCenters] =calcPoints(LoDots,numCols,numRows)
     LoLevelSticks = createLines(LoXMids,spacing,'level')
     LoPlumbSticks = createLines(LoYMids,spacing,'plumb')
     LoSquares = createBoxes(LoCenters,spacing)
-    
+    LoPlayers = ['red','blue']
     pygame.init()
     win = pygame.display.set_mode((width,height))
     clock = pygame.time.Clock()
     click = (0,0)
     running = True
-    turn = 'blue'
-    numOfBoxes = 0
+    turn = LoPlayers[0]
+    numFilledBoxes = 0
     draw = True
     while running:
         for event in pygame.event.get():
@@ -250,7 +354,9 @@ def main():
             
             
             if draw:
+
                 win.fill('grey')
+                
                 """
                 for i in range(len(LoSquares)):
                     for j in range(len(LoSquares[i])):
@@ -264,16 +370,27 @@ def main():
                 realClick = realClick or cliclStick(LoPlumbSticks,click,turn)
                 checkBoxEnclosed(LoLevelSticks,LoPlumbSticks,LoSquares,turn)
                 tempNum =drawSquares(LoSquares,win)
-                
+                scoreDict = getScores(LoSquares)
+                winner = winCheck(scoreDict, numRows, numCols)
+                [sortedPlayers,tie] =sortScores(scoreDict, numCols, numRows)
+                createScoreBoard(sortedPlayers, LoDots,spacing,win,numCols,numRows)
                 drawSticks(LoLevelSticks,win)
                 drawSticks(LoPlumbSticks,win)
                 drawDots(LoDots,win,spacing)
-                if realClick and tempNum == numOfBoxes:
-                    turn = turnSwitch(turn)
-                numOfBoxes = tempNum        
+                if realClick and tempNum == numFilledBoxes:
+                    turn = nextTurn(LoPlayers, turn)
+                if winner == None:
+                    pygame.draw.circle(win, turn, (50,50), int(.2*spacing), 0)
+                elif tie:
+                    pygame.draw.circle(win, 'black', (50,50), int(.3*spacing), 0)
+                else:
+                    #print(winner)
+                    pygame.draw.circle(win, winner, (50,50), int(.3*spacing), 0)
+                numFilledBoxes = tempNum     
+                   
             pygame.display.flip() 
             clock.tick(60)
-
+    
     pygame.quit()
 
 main()
